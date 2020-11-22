@@ -1,2 +1,2 @@
-# OR610-Final-Project
+# Sentiment Analysis
 Final Project
