@@ -54,7 +54,7 @@ Motivation in this study is to apply sentiment analysis via polarity of positive
 
   **List of top 20 common words in dataset**
 
-  <img src="../EDA_1.JPG" alt="https://drive.google.com/file/d/1YpcoARs3OrS_BwF2--nuHz662EhTghqX/view?usp=sharing" style="zoom:65%;" />
+  <img src="https://raw.githubusercontent.com/Anamika1214/OR610-Final-Project/main/EDA_1.JPG?token=ANDKSPN3K2Y34L4LNSIRHY2723YG6" style="zoom:65%;" />
 
   **Top 20 common positive words**
 
