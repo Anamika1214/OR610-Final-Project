@@ -1,0 +1,564 @@
+<p><strong>Authors: Vishal Arya (G01241904), Anamika Singh (G01179029)</strong></p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><p><a href="#introduction&amp;motivation">Introduction</a></p></li>
+<li><p><a href="#data-retrieval">Data Retrieval</a></p></li>
+<li><p><a href="#exploratory-data-analysis">Exploratory Data Analysis</a></p></li>
+<li><p><a href="#PreProcessing">Data Preprocessing</a></p></li>
+<li><p><a href="#methodolgy">Methodology</a></p>
+<ol type="1">
+<li><a href="#benchmark-model">Benchmark Model</a></li>
+<li><a href="#deep-learning-models">Deep Learning Models</a></li>
+</ol></li>
+<li><p><a href="#performance-evaluation">Performance Evaluation</a></p></li>
+<li><p><a href="#analysis-of-results">Analysis of Results</a></p>
+<ol type="1">
+<li><a href="#prediction-on-labeled-tweets">Prediction on Labeled Tweets</a></li>
+<li><a href="#prediction-on-unlabeled-tweets">Prediction on Unlabeled Tweets</a></li>
+</ol></li>
+<li><p><a href="#conclusion">Conclusion</a></p></li>
+<li><p><a href="#references">References</a></p></li>
+</ol>
+<hr />
+<h3 id="introduction-motivation">Introduction &amp; Motivation</h3>
+<p>Sentiment Analysis is the process of ‘computationally’ determining whether a piece of writing is positive, negative or neutral (https://monkeylearn.com/blog/sentiment-analysis-of-twitter/). Commonly referred to as ‘Opinion Mining’, sentiment analysis lends itself to multiple applications across various facets of business, politics, and public action, among others. In business, market research is conducted to understand customer feelings towards brands and products, and thus sentiment analysis plays a natural role of understanding customer receipt of a product given the multitude of opinions expressed by customers across various social media and public forums that exist, today. With respect to politics, sina que non to a success of a politician’s electability is understanding her reception among her various constituents, and there sentiment analysis is a critical tool for use, too. Public action can use sentiment analysis to gauge the overall attitudes in society through inspection of various public forums, social media sites and blogs that reflect both society’s attitudes in general as well as smaller, specific constituent attitudes.</p>
+<p>Motivation in this study is to apply sentiment analysis via polarity of positive (1) or negative (0) tweets to US President Donald Trump tweets over the course of his presidential incumbency. A natural application of classifying Trump’s tweets as positive or negative would be in predicting the movement of the stock market as a function of Trump’s overall tweet sentiments over a specific number of past precedent days coupled with other explanatory variables for overall market movement (S&amp;P500) on a particular day in the future. This is, however, a natural extension of this Study which is beyond the scope of Study’s analysis.</p>
+<h3 id="data-retrieval">Data Retrieval</h3>
+<ul>
+<li>We have sourced data from Kaggle. (https://www.kaggle.com/kazanova/sentiment140)</li>
+<li>Unlabeled tweets are sourced from (http://www.trumptwitterarchive.com/)</li>
+<li>These are human annotated tweets. (1 = positive, 0 = negative)</li>
+</ul>
+<h3 id="exploratory-data-analysis">Exploratory Data Analysis</h3>
+<ul>
+<li><p><strong>Dataset Description</strong></p>
+<ul>
+<li>Number of records - 100,000</li>
+</ul>
+<p><img src="https://drive.google.com/uc?id=1igNcpSkfumE_UurM5KyQSgBr5im6y_1A" style="zoom:80%;" /></p>
+<ul>
+<li>Feature set : We have used text and target as features to train and validate the models.</li>
+<li>Data Distribution: Both labels (positive and negative) are equally distributed in the dataset.</li>
+</ul></li>
+<li><p><strong>Data Exploration</strong></p>
+<p><strong>List of top 20 common words in dataset</strong></p>
+<p><img src="https://drive.google.com/uc?id=1YpcoARs3OrS_BwF2--nuHz662EhTghqX" style="zoom:65%;" /></p>
+<p><strong>Top 20 common positive words</strong></p>
+<p><img src="https://drive.google.com/uc?id=1aMqorqIrESaqu0vSH2DqL9h1NjTLATTx" style="zoom:67%;" /></p>
+<p><strong>Top 20 common negative words</strong></p>
+<p><img src="https://drive.google.com/uc?id=1UtSpx1Yhu_HTT40lBNl9HsD8nh5UgHWP" style="zoom:67%;" /></p>
+<ul>
+<li><p><strong>Use of punctuations for each sentiment</strong></p>
+<p><img src="https://drive.google.com/uc?id=1Zm9gbsyF08gWREixIzjqnSQ2747CBC8n" style="zoom:67%;" /></p></li>
+<li><p><strong>Length of tweet </strong></p>
+<p><img src="https://drive.google.com/uc?id=1wTGtuk3zl4MJ6rRRPTW3JvfcUqJVDFpr" style="zoom:67%;" /></p>
+<ul>
+<li><strong>Word Cloud</strong></li>
+</ul>
+<p><img src="https://drive.google.com/uc?id=1nC78nHVbsgehubkIQBWNYLRy07vSCc--" style="zoom:67%;" /></p></li>
+<li><p><strong>N-gram Analysis</strong></p>
+<p><img src="https://drive.google.com/uc?id=1uTH655qxkXc6J01hO9Sk5MklgFRN0KzN" style="zoom:67%;" /></p></li>
+</ul></li>
+</ul>
+<h3 id="pre-processing">Pre-Processing</h3>
+<ol type="1">
+<li><p><strong>Data Cleaning</strong></p>
+<ul>
+<li><p>Removed stop words, punctuations, URLs, user mentions and extra spaces</p></li>
+<li><p>Replaced English contractions with its meaning (hasn’t -&gt; has not)</p></li>
+<li><p>Converted all words to lower case</p></li>
+<li><p>Stemmed words to their base root form</p></li>
+</ul></li>
+<li><p><strong>Model specific data pre-processing</strong></p>
+<ul>
+<li><p>Pre-processing was common to all models, except BERT.</p></li>
+<li><p>BERT requires minimum pre-processing. In this case we only removed URLs, user mentions and punctuations.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> text_preprocessing(text):</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">    - Remove entity mentions (eg. &#39;@united&#39;)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">    - Correct errors (eg. &#39;&amp;amp;&#39; to &#39;&amp;&#39;)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">    @param    text (str): a string to be processed.</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">    @return   text (Str): the processed string.</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Remove &#39;@name&#39;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> re.sub(<span class="vs">r&#39;(@.*?)[\s]&#39;</span>, <span class="st">&#39; &#39;</span>, text)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Replace &#39;&amp;amp;&#39; with &#39;&amp;&#39;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> re.sub(<span class="vs">r&#39;&amp;amp;&#39;</span>, <span class="st">&#39;&amp;&#39;</span>, text)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Remove trailing whitespace</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> re.sub(<span class="vs">r&#39;\s+&#39;</span>, <span class="st">&#39; &#39;</span>, text).strip()</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> text</span></code></pre></div>
+<p>​</p></li>
+</ul></li>
+</ol>
+<h3 id="methodology">Methodology</h3>
+<h5 id="benchmark-model">Benchmark Model</h5>
+<ol type="1">
+<li>SVM
+<ul>
+<li><p>Tweet data was first tokenized using Word2Vec with maximum length 15 and word vector dimension of 100. The resultant matrix of tweets was [# tweets, 15, 100]. The mean of each embedding dimension was taken across tokenized word to prepare the data for use with the SVM algorithm resulting in final dataset dimension of [# tweets, 100]</p></li>
+<li><p>The SVM algorithm was fit on the data with 80% training and 20% test. A Radial Basis Function kernel was used to train the the model</p></li>
+<li><p><strong>The final resultant accuracy on the test data from SVM is 70.9%</strong></p></li>
+</ul></li>
+<li>SVM with pre-trained embedding GLoVE
+<ul>
+<li><p>Twitter GLoVE word embedding vector of dim 100 was used for fitting tokenized words in the tweet data. A dictionary was built on GLoVE vectorized word data first. Max length of tweets was set to 15, which reflected roughly 80% quantile of tweet data length. Each token was then vectorized using the GLoVE dictionary and if the word was not found its vector was set to the 0 vector. To prepare the dataset for SVM, the mean per token was taken and the resultant matrix dimension was [# tweets, 100]</p></li>
+<li><p>The SVM algorithm was fit on the data with 80% training and 20% test. A Radial Basis Function kernel was used to train the the model</p></li>
+<li><p><strong>The final resultant accuracy on the test data from SVM with GLoVE is 70.32%</strong></p></li>
+</ul></li>
+</ol>
+<h5 id="deep-learning-models">Deep Learning Models</h5>
+<p><strong><em>We have used PyTorch and TorchText extensively to build deep learning models</em></strong>.</p>
+<ol type="1">
+<li><p>CNN</p></li>
+<li><p>CNN 1D</p>
+<p>CNN 1D model was created to pretrain embeddings to be fed into the CNN 2D model for sentiment analysis. Kernel sizes of [2,3,4] were used to train the model embeddings of 100 dimension. These kernel sizes reflect the bigram, trigram and 4gram and the model strides over kernel sizes 2,3,4 as it trains the weights.</p></li>
+</ol>
+<pre><code>class CNN(nn.Module):
+        def __init__(self, vocab_size, embedding_dim, n_filters, output_dim, 
+                     dropout, pad_idx, k_size):
+          
+            super().__init__()
+                    
+            self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx = pad_idx)
+            self.cnn = nn.ModuleList([nn.Conv1d(in_channels = embedding_dim, 
+                                                  out_channels = n_filters, 
+                                                  kernel_size = fs) 
+                                        for fs in k_size
+                                        ])
+            self.relu = nn.ReLU()
+            self.dropout = nn.Dropout(dropout)
+            self.fc = nn.Linear(len(k_size)*n_filters, output_dim) #replaced with avg pool torch.mean</code></pre>
+<p>For purposes of model training, the loss was defined as Binary Cross Entropy Loss given there are only 2 classes and the Adam optimizer was used. Following training of the model, word embeddings were plotted using PCA analysis with the first 2 principal component vectors as axes (top 50 words labeled):</p>
+<p>​ <img src="https://drive.google.com/uc?id=1GCCA52y1IjmJMQim3H6gzOcHBXgVS8WX" style="zoom:80%;" /></p>
+<ol type="1">
+<li><p>CNN 2D</p>
+<ul>
+<li>CNN 2D network was created for sentiment analysis using multiple kernel sizes to reflect bigram, trigram and 4-gram relationships in the tweet data. An embedding initial layer of 100 dimension was specified, following by 3 convolution layers to convolve over kernel sizes respectively equal to [2,3,4] N-gram analysis. A linear layer was further connected to the output of the convolution layers and a dropout layer was instantiated as part of regularization efforts. The forward propagation method is printed below:</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, text):</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                <span class="co">#text = [batch size, sent len]</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                embedded <span class="op">=</span> <span class="va">self</span>.embedding(text)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                <span class="co">#embedded = [batch size, sent len, emb dim]</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                embedded <span class="op">=</span> embedded.unsqueeze(<span class="dv">1</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                <span class="co">#embedded = [batch size, 1, sent len, emb dim]</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>                conved <span class="op">=</span> [F.relu(conv(embedded)).squeeze(<span class="dv">3</span>) <span class="cf">for</span> conv <span class="kw">in</span> <span class="va">self</span>.convs]</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                <span class="co">#conved_n = [batch size, n_filters, sent len - filter_sizes[n] + 1]</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>                pooled <span class="op">=</span> [F.max_pool1d(conv, conv.shape[<span class="dv">2</span>]).squeeze(<span class="dv">2</span>) <span class="cf">for</span> conv <span class="kw">in</span> conved]</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>                <span class="co">#pooled_n = [batch size, n_filters]</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>                cat <span class="op">=</span> <span class="va">self</span>.dropout(torch.cat(pooled, dim <span class="op">=</span> <span class="dv">1</span>))</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>                <span class="co">#cat = [batch size, n_filters * len(filter_sizes)]</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>                cat <span class="op">=</span> <span class="va">self</span>.fc(cat)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>                cat <span class="op">=</span> torch.sigmoid(cat)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> cat</span></code></pre></div></li>
+</ol>
+<p>MaxPooling was used to reduce dimensionality and reduce overfitting of the network followed by a dropout layer whose dropout probability was optimized utilizing a heuristic grid search algorithm. A sigmoid layer was called on the final linear layer with output dimension = 1 to determine the probability of positive (1) or negative (0) sentiment classification of the tweet</p>
+<ul>
+<li>The model was run with pre-trained embeddings from CNN1D embedding layers fit on the vocabulary. However accuracy was not shown to increase using pre-trained embeddings and thus for purposes of optimization of the CNN 2D network the network would train its own embedding weights during model training</li>
+</ul>
+<ol type="1">
+<li><p>CNN 2D Heuristic Optimization</p>
+<ul>
+<li><p>Grid search was conducted on the following parameters: Dropout probability %, filter size, embedding vector dimension, and optimizer selection (Adam or RMSProp)</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>    GRID_DROPOUT <span class="op">=</span> [<span class="fl">.5</span>, <span class="fl">.75</span>, <span class="fl">.4</span>]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>GRID_FILTERS <span class="op">=</span> [<span class="dv">32</span>, <span class="dv">64</span>, <span class="dv">128</span>, <span class="dv">16</span>]</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    GRID_EMBEDDINGS <span class="op">=</span> [<span class="va">None</span>]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    GRID_EMBED_DIM <span class="op">=</span> [<span class="dv">100</span>,<span class="dv">50</span>,<span class="dv">300</span>]</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    GRID_OPT_SELECT <span class="op">=</span> [<span class="st">&quot;Adam&quot;</span>,<span class="st">&quot;RMSprop&quot;</span>]</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">#create list instantiated models with param tuning</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    GRID_TOTAL <span class="op">=</span> [] </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> perm <span class="kw">in</span> itertools.product(GRID_DROPOUT, GRID_FILTERS, GRID_EMBEDDINGS, GRID_EMBED_DIM, GRID_OPT_SELECT):</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        GRID_TOTAL.append(perm)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">len</span>(GRID_TOTAL)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    GRID_TOTAL[<span class="dv">0</span>] <span class="co"># dropout x filter x embedding x embed_dim x optimizer_type</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    GRID_MODELS <span class="op">=</span> []</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    GRID_OPT <span class="op">=</span> []</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">#create models list</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(GRID_TOTAL)):</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>        DROPOUT <span class="op">=</span> GRID_TOTAL[i][<span class="dv">0</span>]</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>        N_FILTERS <span class="op">=</span> GRID_TOTAL[i][<span class="dv">1</span>]</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>        PRETRAINED_EMBEDDINGS <span class="op">=</span> GRID_TOTAL[i][<span class="dv">2</span>]</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>        EMBEDDING_DIM <span class="op">=</span> GRID_TOTAL[i][<span class="dv">3</span>]</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>        GRID_MODELS.append(CNN_2d(INPUT_DIM, EMBEDDING_DIM, N_FILTERS, FILTER_SIZES, OUTPUT_DIM, DROPOUT, PAD_IDX, PRETRAINED_EMBEDDINGS))</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>        GRID_OPT.append(<span class="bu">eval</span>(<span class="st">&quot;optim.&quot;</span><span class="op">+</span>GRID_TOTAL[i][<span class="dv">4</span>])(GRID_MODELS[i].parameters()))</span></code></pre></div>
+<ul>
+<li>Optimization was measured using Accuracy statistic, 10 epochs were run with batch size of 1000 per each grid search tuned model. Gradient clipping was set to OFF because no high magnitude gradients during backpropagation, defined as gradient magnitude &gt; 5 was found:</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>    GRID_TRACKER <span class="op">=</span> []</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">#gradient does not exhibit high magnitudes, thus clip set to FALSE</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">#pre-trained embeddings from CNN1d exhibited no accuracy benefit, thus self-train embeddings</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    train_options <span class="op">=</span> <span class="bu">dict</span>(EPOCHS<span class="op">=</span><span class="dv">10</span>, clip<span class="op">=</span><span class="va">False</span>, KERN_SET<span class="op">=</span>KERNEL_SIZE)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(GRID_MODELS)):</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot; </span><span class="ch">\n</span><span class="st"> Running Grid search model </span><span class="sc">%d</span><span class="st"> of </span><span class="sc">%d</span><span class="st">&quot;</span> <span class="op">%</span> (i<span class="op">+</span><span class="dv">1</span>, <span class="bu">len</span>(GRID_MODELS)))</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        temp_val <span class="op">=</span> train_val(GRID_MODELS[i],GRID_OPT[i],train_options)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        GRID_TRACKER.append(np.<span class="bu">max</span>([temp_val[x][<span class="dv">1</span>] <span class="cf">for</span> x <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(temp_val))]))</span></code></pre></div>
+<p><img src="https://drive.google.com/uc?id=1u_pFzAcQLsR558PVwTl3VS0SGzktKP1q" style="zoom:80%;" /></p></li>
+<li><p>The resulting histogram of the accuracy results across all tested models is below. The overall mean was 75% and standard deviation of .005% indicating small tails:</p>
+<p><img src="https://drive.google.com/uc?id=1DCeiKHn5gKzmvw8zMVYTkV6Jy05AxqsK" style="zoom: 67%;" /></p></li>
+<li><p>Given the relatively clustered model performances around the mean of 75%, the optimized CNN2D model with the following parameters were chosen:</p>
+<ul>
+<li><p><strong>Embedding Dim = 100, Dropout Probability = 50%, Filter Size = 32, Kernel Size = [2,3,4]</strong></p></li>
+<li><p>The final model settings were trained on 10 epochs using batch size of 1000 resulting in best validation accuracy of approximately <strong>75%</strong></p>
+<p><img src="https://drive.google.com/uc?id=1XLijy3kynHXvLT5FM2bwGblb3CycyRys" style="zoom:67%;" /></p></li>
+</ul></li>
+</ul></li>
+<li><p><strong>Recurrent Neural Network</strong></p>
+<ol type="1">
+<li><p>LSTM self trained</p></li>
+<li><p>LSTM with Glove as embeddings</p></li>
+</ol></li>
+</ol>
+<ul>
+<li><p><strong>Data Preparation</strong></p>
+<ul>
+<li><p>The first step in getting data ready for modeling was to define the Fields and split the data into train, validation and test sets.</p></li>
+<li><p>We have used packed padded sequences, which makes the model process only non-padded elements in a given sequence and for padded elements output will be zero tensor.</p></li>
+<li><p>Tweet text is split into discrete tokens using spaCy tokenizer.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>TEXT <span class="op">=</span> data.Field(tokenize<span class="op">=</span><span class="st">&#39;spacy&#39;</span>, lower<span class="op">=</span><span class="va">True</span>, include_lengths<span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>LABEL <span class="op">=</span> data.LabelField(dtype<span class="op">=</span>torch.<span class="bu">float</span>)</span></code></pre></div></li>
+</ul></li>
+<li><p><strong>Build Vocabulary</strong></p>
+<ul>
+<li>Next, we build vocabulary which is effectively a look up table where every unique word in dataset has a corresponding integer value.</li>
+<li>Since size of our dataset is large, we have limited the vocab size to 30,000. This will take most common words (30000) to build the vocabulary.</li>
+</ul></li>
+<li><p><strong>Train the model on mini-batches</strong></p>
+<ul>
+<li>We have used Bucket Iterator, which returns a batch of similar length examples minimizing the amount of padding per example.</li>
+</ul></li>
+<li><p><strong>Model Architecture</strong></p>
+<p><img src="https://drive.google.com/uc?id=1-w8KLbqqCs_kxzwlRVXbMw0h7nPD6eeq" style="zoom: 67%;" /></p>
+<ul>
+<li>The first layer is Tokenize, which is a mandatory step of converting each unique word in a sentence to integers. Dimension for this layer is same as vocabulary size.</li>
+<li>Next, we have Embedding layer that converts tokens into embeddings of specific size.</li>
+<li>LSTM layer includes hidden state dimensions and number of layers.</li>
+<li>The output from Fully connected Layer is passed as input to Sigmoid activation which will turn all the values between 0 and 1.</li>
+</ul></li>
+<li><p>Instantiate and Train the Model</p>
+<ul>
+<li><p>Model is instantiated with hyperparameters</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>INPUT_DIM <span class="op">=</span> <span class="bu">len</span>(TEXT.vocab)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>EMBEDDING_DIM <span class="op">=</span> <span class="dv">300</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>HIDDEN_DIM <span class="op">=</span> <span class="dv">256</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>OUTPUT_DIM <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2 layers of biLSTM</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>N_LAYERS <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>BIDIRECTIONAL <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Dropout probability</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>DROPOUT <span class="op">=</span> <span class="fl">0.6</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Get pad token index from vocab</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>PAD_IDX <span class="op">=</span> TEXT.vocab.stoi[TEXT.pad_token]</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> LSTM(INPUT_DIM,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            EMBEDDING_DIM,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>            HIDDEN_DIM,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>            OUTPUT_DIM,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>            N_LAYERS,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>            BIDIRECTIONAL,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>            DROPOUT,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>            PAD_IDX)</span></code></pre></div>
+<ul>
+<li>Regularization: Dropout probability is set to 0.6 to avoid overfitting.</li>
+<li>We have used Binary Cross Entropy Loss. BCE loss is specifically designed to work with a single sigmoid output.</li>
+<li>Optimizer: Adam with learning rate 0.001</li>
+<li>Clip: To prevent exploding of gradients, we have specified gradient clipping value as 5.</li>
+</ul></li>
+</ul></li>
+<li><p><strong>Accuracy Plots</strong></p>
+<p><img src="https://drive.google.com/uc?id=1lNFG-aCMEePOYe_Mu4ZoeY3h4-FVrB7w" style="zoom:67%;" /></p></li>
+<li><p><strong>LSTM with Glove as embeddings</strong></p>
+<p>Data preparation is similar to self trained LSTM, the only difference here is we will use pre-trained word embeddings instead of having embeddings initialized randomly.</p>
+<p>We have used “glove.6B.100d”. Glove is the algorithm that calculates vectors, 6B indicates these vectors were trained on 6 billion tokens and 100d is the dimension size of vectors.</p>
+<p>TorchText initializes the vocabulary via a Gaussian distribution, when <strong>unk_init</strong> is specified to <strong>torch.Tensor.normal_</strong></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>MAX_VOCAB_SIZE <span class="op">=</span> <span class="dv">30000</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>TEXT.build_vocab(train_data, </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                 max_size <span class="op">=</span> MAX_VOCAB_SIZE,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                 vectors <span class="op">=</span> <span class="st">&quot;glove.6B.100d&quot;</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                 unk_init <span class="op">=</span> torch.Tensor.normal_)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>LABEL.build_vocab(train_data)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>TEXT.vocab.freqs.most_common(<span class="dv">10</span>)</span></code></pre></div>
+<p><strong>Model Implementation</strong></p>
+<ul>
+<li><p>In this implementation we will explicitly specify the model to not learn the embedding for “<pad>” token as they are not relevant in sentiment prediction.</p></li>
+<li><p>Similar to self trained LSTM, we have instantiated model with new parameters and arguments for the number of layers, bidirectionality and dropout probability.</p></li>
+<li><p>Embedding dimension is equal to that of the pre-trained GLoVE vectors to ensure pre-trained vectors are loaded into the model.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>INPUT_DIM <span class="op">=</span> <span class="bu">len</span>(TEXT.vocab)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># dim must be equal to the dim of pre-trained GloVe vectors</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>EMBEDDING_DIM <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>HIDDEN_DIM <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>OUTPUT_DIM <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 2 layers of biLSTM</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>N_LAYERS <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>BIDIRECTIONAL <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Dropout probability</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>DROPOUT <span class="op">=</span> <span class="fl">0.4</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Get pad token index from vocab</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>PAD_IDX <span class="op">=</span> TEXT.vocab.stoi[TEXT.pad_token]</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Create an instance of LSTM class</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> LSTM(INPUT_DIM,</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>            EMBEDDING_DIM,</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>            HIDDEN_DIM,</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>            OUTPUT_DIM,</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>            N_LAYERS,</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>            BIDIRECTIONAL,</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>            DROPOUT,</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>            PAD_IDX)</span></code></pre></div></li>
+<li><p>The final addition to model implementation is copying pre-trained word embeddings and replace the initial weights of the embedding layer with pre-trained embeddings.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>model.embedding.weight.data.copy_(pretrained_embeddings)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>tensor([[ <span class="fl">0.4301</span>, <span class="op">-</span><span class="fl">1.0782</span>,  <span class="fl">0.0548</span>,  ...,  <span class="fl">0.9136</span>,  <span class="fl">1.7360</span>,  <span class="fl">0.1787</span>],</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        [ <span class="fl">0.2079</span>,  <span class="fl">1.2385</span>,  <span class="fl">0.1488</span>,  ...,  <span class="fl">1.3275</span>,  <span class="fl">2.0824</span>,  <span class="fl">0.1242</span>],</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        [<span class="op">-</span><span class="fl">0.0465</span>,  <span class="fl">0.6197</span>,  <span class="fl">0.5665</span>,  ..., <span class="op">-</span><span class="fl">0.3762</span>, <span class="op">-</span><span class="fl">0.0325</span>,  <span class="fl">0.8062</span>],</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        ...,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        [ <span class="fl">0.4727</span>, <span class="op">-</span><span class="fl">0.7132</span>,  <span class="fl">0.6358</span>,  ..., <span class="op">-</span><span class="fl">0.7714</span>, <span class="op">-</span><span class="fl">0.1937</span>, <span class="op">-</span><span class="fl">0.3705</span>],</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>        [<span class="op">-</span><span class="fl">0.4105</span>, <span class="op">-</span><span class="fl">0.7782</span>, <span class="op">-</span><span class="fl">0.2961</span>,  ...,  <span class="fl">0.0090</span>, <span class="op">-</span><span class="fl">0.2415</span>,  <span class="fl">0.0184</span>],</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>        [<span class="op">-</span><span class="fl">0.2424</span>,  <span class="fl">0.4024</span>,  <span class="fl">0.6598</span>,  ...,  <span class="fl">0.3556</span>, <span class="op">-</span><span class="fl">0.2883</span>,  <span class="fl">0.3972</span>]])</span></code></pre></div></li>
+<li><p>Training steps are same as self trained LSTM.</p></li>
+<li><p><strong>Accuracy Plots</strong></p>
+<p><img src="https://drive.google.com/uc?id=1aQjWs-33NV39-FEVKeykD5Z9KUNauJfz" style="zoom:67%;" /></p></li>
+</ul></li>
+<li><h5 id="bert-bidirectional-encoder-representation-for-transformers">BERT (Bidirectional Encoder Representation for Transformers)</h5>
+<ul>
+<li><p>Like, other deep learning models, BERT aims to solve NLP-related tasks. The difference between BERT and other deep learning models is BERT has additional embedding layers in the form of Segment Embeddings and Position Embeddings.</p></li>
+<li><p>Brief information about each embedding layer.</p>
+<ol type="1">
+<li><p>Token Embeddings : The role of this layer is to transform words into vector representations of fixed dimension. Each word is represented as a 768-dimensional vector.</p></li>
+<li><p>Segment Embeddings: This layer helps BERT in distinguishing inputs based on semantic similarity. For example, input is “i like cats, i like dogs”, segment embedding will tokenize the text in a way that model treats this as two different inputs. input 1 will be “i like cats” and input 2, “i like dogs”.</p></li>
+<li><p>Position Embeddings: BERT consists of stack of Transformers and broadly speaking, Transformers do not encode sequential nature of their inputs. Having position embeddings allows BERT to understand that given an input text like, “I think, therefore I am” , the first “I” should not have same vector representation as second.</p>
+<p><img src="https://drive.google.com/uc?id=14NYMQrYZJ88pek2OpZR9ZaSwk7vMl24c" style="zoom:67%;" /></p></li>
+</ol></li>
+</ul></li>
+</ul>
+<h4 id="performance-evaluation">Performance Evaluation</h4>
+<ol type="1">
+<li><p><strong>Initial Results</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>pre-trained Vectors</th>
+<th>Accuracy (Test set)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CNN 2D</td>
+<td>-</td>
+<td>73%</td>
+</tr>
+<tr class="even">
+<td>LSTM (Bidirectional)</td>
+<td>-</td>
+<td>79.8%</td>
+</tr>
+<tr class="odd">
+<td>LSTM (Bidirectional)</td>
+<td>GLoVE</td>
+<td>79%</td>
+</tr>
+<tr class="even">
+<td>BERT (Transformers)</td>
+<td>bert-base-uncased</td>
+<td>82%</td>
+</tr>
+</tbody>
+</table></li>
+<li><p><strong>Results post Hyperparameter tuning</strong></p>
+<ul>
+<li><p>We have used grid search to find optimal combination of hyperparameters for all the models.</p></li>
+<li><p>List of hyperparameters tuned for LSTM</p>
+<ol type="1">
+<li>Learning rate</li>
+<li>Dropout Probability</li>
+<li>Hidden dimension</li>
+<li>Embedding dimension</li>
+<li>Optimizer (Adam Vs RMSprop)</li>
+</ol></li>
+<li><p>List of hyperparameters tuned for BERT</p>
+<ol type="1">
+<li>Learning Rate</li>
+<li>Number of epochs</li>
+</ol>
+<p><strong>Optimized Results</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>pre-trained Vectors</th>
+<th>Accuracy (Test set)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CNN 2D</td>
+<td>-</td>
+<td>75%</td>
+</tr>
+<tr class="even">
+<td>LSTM</td>
+<td>-</td>
+<td>80.8%</td>
+</tr>
+<tr class="odd">
+<td>LSTM</td>
+<td>GLoVE</td>
+<td>80.5%</td>
+</tr>
+<tr class="even">
+<td>BERT</td>
+<td>bert-base-uncased</td>
+<td>84.5%</td>
+</tr>
+</tbody>
+</table></li>
+</ul></li>
+</ol>
+<h4 id="analysis-of-results">Analysis of Results</h4>
+<ol type="1">
+<li><p><strong>Unlabeled Dataset</strong></p>
+<ul>
+<li><p>To review performance of our models, we have retrieved set of tweets by US President Donald Trump. These are unlabeled tweets.</p></li>
+<li><p>We have labeled the tweets as positive or negative using TextBlob. TextBlob is a python library and offers a simple API to access its methods and perform basic NLP tasks.</p></li>
+<li><p>Labels annotated using TextBlob are compared with the labels predicted by the model.</p></li>
+<li><p><strong>We have around 70% of positive tweets and around 30% negative as per TextBlob</strong>. We will use this as reference to compare prediction by our models.</p></li>
+<li><p>Below table shows performance of model in predicting sentiment.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Prediction %</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LSTM</td>
+<td>63% positive tweets and 37% negative tweets</td>
+</tr>
+<tr class="even">
+<td>LSTM with GLoVE</td>
+<td>70.68% positive and 29.31% negative</td>
+</tr>
+<tr class="odd">
+<td>BERT</td>
+<td>62% positive tweets and 38% negative tweets</td>
+</tr>
+<tr class="even">
+<td>CNN 2D</td>
+<td>71% positive tweets and 28.6% negative tweets</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Below are samples of positive/negative tweets predicted by all deep learning models. On average all deep learning models give similar prediction probability</strong></p>
+<table>
+<colgroup>
+<col style="width: 65%" />
+<col style="width: 10%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Tweet</th>
+<th>Prediction</th>
+<th>True Label (TextBlob)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>i was thrilled to be back in the great city of charlotte, north carolina with thousands of hardworking american patriots who love our country, cherish our values, respect our laws, and always put america first! thank you for a wonderful evening!! kag2020</td>
+<td>0.983126</td>
+<td>Positive</td>
+</tr>
+<tr class="even">
+<td>getting a little exercise this morning!</td>
+<td>0.91164</td>
+<td>Negative</td>
+</tr>
+<tr class="odd">
+<td>more voter fraud …</td>
+<td>0.343907</td>
+<td>Positive</td>
+</tr>
+<tr class="even">
+<td>the unsolicited mail in ballot scam is a major threat to our democracy, &amp; amp; the democrats know it . almost all recent elections using this system, even though much smaller &amp; amp; with far fewer ballots to count, have ended up being a disaster . large numbers of missing ballots &amp; amp; fraud!</td>
+<td>0.147174</td>
+<td>Positive</td>
+</tr>
+<tr class="odd">
+<td>… based on decisions being rendered now, this list is more important than ever before (second amendment, right to life, religous liberty, etc .) Ã¢Â€Â“ vote 2020!</td>
+<td>0.94707</td>
+<td>Positive</td>
+</tr>
+<tr class="even">
+<td>president: the 20 most dangerous american cities are democrat run</td>
+<td>0.846576</td>
+<td>Negative</td>
+</tr>
+<tr class="odd">
+<td>live: president gives an update on coronavirus testing strategy</td>
+<td>0.921976</td>
+<td>Positive</td>
+</tr>
+<tr class="even">
+<td>sleepy joe thought this was ok . not me!</td>
+<td>0.268652</td>
+<td>Positive</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>From the above table, we observe that sequential model is taking context into consideration to predict sentiment.</li>
+<li>Example: getting a little exercise this morning! is classified as negative by TextBlob method, but as per model it is a positive sentiment.</li>
+<li>Example: sleepy joe thought this was ok . not me!. Here again TextBlob has classified the tweet as Positive whereas as per model its negative.</li>
+<li>Sequential models like LSTM, BERT are performing better than TextBlob in classifying text sentiment.</li>
+</ul></li>
+</ul></li>
+</ol>
+<h4 id="conclusion-future-work">Conclusion &amp; Future work</h4>
+<ul>
+<li><p>We have implemented machine learning, deep learning and transformer based models. Based on the accuracy results obtained, we can conclude BERT performs best in predicting accurate results.</p></li>
+<li><p>BERT gives accuracy of 85% on sentiment140 test data. This is because BERT takes position of word/text into consideration along with context.</p></li>
+<li><p>Deep learning models give higher prediction accuracy compared to benchmark machine learning model, support vector machines.</p></li>
+<li><p>In addition to predicting sentiment on labeled sentiment140 dataset, we evaluated performance of our models on unlabeled tweets.</p></li>
+<li><p>LSTM with pre-trained GLoVE embeddings performs best in predicting sentiment on unlabeled tweets. Since we have initialized our embeddings using pre-trained vectors, instead of having them initialized randomly using training data. The theory is that these pre-trained vectors already have words with similar semantic meaning close together in vector space, e.g.. “terrible”, “awful”, “dreadful” are nearby. This gives our embedding layer a good initialization as it does not have to learn these relations from scratch. Sentiment prediction is more accurate with sequential deep learning models, like LSTM and BERT in comparison to TextBlob. TextBlob marks the tweet as positive or negative based on word vectors whereas sequential models take context into consideration.</p>
+<p><strong>Future work</strong></p></li>
+<li><p>In future, we would like to take subjectivity of tweet/text into consideration when predicting sentiment.</p></li>
+<li><p>Implementing Bayesian optimization for parameter tuning.</p></li>
+</ul>
+<h4 id="references">References</h4>
+<p>​ https://towardsdatascience.com/sentiment-analysis-using-lstm-step-by-step-50d074f09948</p>
+<pre><code>    https://medium.com/@_init_/why-bert-has-3-embedding-layers-and-their-implementation-details-9c261108e28a
+
+     https://arxiv.org/pdf/1810.04805.pdf</code></pre>
+<p>​ https://towardsdatascience.com/quick-tutorial-using-bayesian-optimization-to-tune-your-hyperparameters-in-pytorch-e9f7</p>
+<p>​ https://medium.com/<span class="citation" data-cites="mc7968/whatwouldtrumptweet-topic-clustering-and-tweet-generation-from-donald-trumps-tweets">@mc7968/whatwouldtrumptweet-topic-clustering-and-tweet-generation-from-donald-trumps-tweets</span></p>
